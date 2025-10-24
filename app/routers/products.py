@@ -14,14 +14,63 @@ def create_product(
     current_user: str = Depends(get_current_user)
 ):
     user = db.query(models.User).filter(models.User.email == current_user).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
     new_product = models.Product(**product.model_dump(), owner_id=user.id)
     db.add(new_product)
     db.commit()
     db.refresh(new_product)
     return new_product
 
-
 @router.get("/", response_model=List[schemas.ProductOut])
 def get_all_products(db: Session = Depends(get_db)):
-    products = db.query(models.Product).all()
-    return products
+    return db.query(models.Product).all()
+
+@router.get("/{product_id}", response_model=schemas.ProductOut)
+def get_product(product_id: int, db: Session = Depends(get_db)):
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return product
+
+@router.put("/{product_id}", response_model=schemas.ProductOut)
+def update_product(
+    product_id: int,
+    updated_product: schemas.ProductCreate,
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
+):
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    owner = db.query(models.User).filter(models.User.email == current_user).first()
+    if product.owner_id != owner.id:
+        raise HTTPException(status_code=403, detail="Not authorized to edit this product")
+
+    for key, value in updated_product.model_dump().items():
+        setattr(product, key, value)
+
+    db.commit()
+    db.refresh(product)
+    return product
+
+@router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
+):
+    product = db.query(models.Product).filter(models.Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    owner = db.query(models.User).filter(models.User.email == current_user).first()
+    if product.owner_id != owner.id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this product")
+
+    db.delete(product)
+    db.commit()
+    return {"detail": "Product deleted successfully"}
+
