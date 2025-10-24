@@ -4,9 +4,9 @@ sqlalchemy
 psycopg2-binary
 jinja2
 python-multipart
-passlib[bcrypt]
 python-jose
 pydantic
 email-validator
-jinja2
 pydantic-settings
+bcrypt==4.0.1
+passlib==1.7.4
