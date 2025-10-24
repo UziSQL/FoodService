@@ -12,7 +12,6 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.post("/register", response_model=schemas.UserOut, status_code=status.HTTP_201_CREATED)
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    """Создание нового пользователя"""
     existing = db.query(models.User).filter(models.User.email == user.email).first()
     if existing:
         raise HTTPException(
@@ -23,6 +22,7 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     new_user = models.User(
         email=user.email,
         hashed_password=hash_password(user.password),
+        role=user.role
     )
     db.add(new_user)
     db.commit()
@@ -31,8 +31,8 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
+
 def get_current_user(token: str = Depends(oauth2_scheme)):
-    """Декодирование JWT токена и получение текущего пользователя"""
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
         email: str = payload.get("sub")

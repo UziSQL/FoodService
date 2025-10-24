@@ -26,6 +26,16 @@ class ProductBase(BaseModel):
 class ProductCreate(ProductBase):
     pass
 
+class OrderCreate(BaseModel):
+    product_id: int
+
+class OrderOut(BaseModel):
+    id: int
+    product_id: int
+    buyer_id: int
+    seller_id: int
+    status: str
+    created_at: datetime
 
 class ProductOut(ProductBase):
     id: int

@@ -1,4 +1,8 @@
 from fastapi import FastAPI
+from app.database import Base, engine
+from app.routers import users, auth, products, orders
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="FoodService API")
 
@@ -6,15 +10,8 @@ app = FastAPI(title="FoodService API")
 def root():
     return {"message": "Welcome to FoodService!"}
 
-from app.routers import users
-app.include_router(users.router)
-
-from app.routers import auth
-app.include_router(auth.router)
-
-from app.routers import users, auth, products
-
+# Подключаем роутеры
 app.include_router(users.router)
 app.include_router(auth.router)
 app.include_router(products.router)
-
+app.include_router(orders.router)

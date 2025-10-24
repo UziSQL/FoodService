@@ -13,7 +13,6 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     role = Column(String, default="buyer")  # 👈 Новое поле (роль пользователя)
 
-    # Связь с продуктами
     products = relationship("Product", back_populates="owner")
 
 
@@ -28,5 +27,18 @@ class Product(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     owner_id = Column(Integer, ForeignKey("users.id"))
 
-    # Связь с владельцем (User)
     owner = relationship("User", back_populates="products")
+
+class Order(Base):
+    __tablename__ = "orders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.id"))
+    buyer_id = Column(Integer, ForeignKey("users.id"))
+    seller_id = Column(Integer, ForeignKey("users.id"))
+    created_at = Column(DateTime, default=datetime.utcnow)
+    status = Column(String, default="completed")
+
+    product = relationship("Product")
+    buyer = relationship("User", foreign_keys=[buyer_id])
+    seller = relationship("User", foreign_keys=[seller_id])
