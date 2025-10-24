@@ -8,3 +8,6 @@ def root():
 
 from app.routers import users
 app.include_router(users.router)
+
+from app.routers import auth
+app.include_router(auth.router)
